@@ -70,18 +70,20 @@ func handleCmd (s_nick string, s_cmd []string, ircobj *irc.Connection) {
     fmt.Println(s_nick)
     fmt.Println(s_cmd)
 
-    cmd	:= strings.Replace(s_cmd[0], cmdPrefix, "", 1) //strings.Replace(strings.Split(e.Message, " ")[0], cmdPrefix, "", 1)
+    cmd	:= strings.Replace(s_cmd[0], cmdPrefix, "", 1)
+    //strings.Replace(strings.Split(e.Message, " ")[0], cmdPrefix, "", 1)
     cmdArgs := s_cmd[1:] //strings.Split(e.Message, " ")[1:]
 
     fmt.Printf("%s\n", cmd)
-//	if (!missing.Present(admins, s_nick)) {
-//		fmt.Println(s_nick + " is not in admins.")
-//		if (!missing.Present(auth_users, s_nick)) {
-//			fmt.Println(s_nick + " is not in auth_users")
-//			return
-//		}
-//	}
-	// auth_users command tree
+    if (!missing.Present(admins, s_nick)) {
+        fmt.Println(s_nick + " is not in admins.")
+        if (!missing.Present(auth_users, s_nick)) {
+            fmt.Println(s_nick + " is not in auth_users")
+            return
+        }
+    }
+
+    // auth_users command tree
     switch cmd {
     case "memo":
         n := len(cmdArgs)
@@ -93,7 +95,9 @@ func handleCmd (s_nick string, s_cmd []string, ircobj *irc.Connection) {
                     memomsg = append(memomsg, strings.Join(cmdArgs[2:], " "))
                     fmt.Printf("%s", memomsg)
                 }
-                if cmdArgs[0] == "list" { ircobj.Privmsgf(target, "memos for: %s", memolist) }
+                if cmdArgs[0] == "list" {
+                    ircobj.Privmsgf(target, "memos for: %s", memolist)
+                }
                 if cmdArgs[0] == "read" {
                     for i := 0; i < len(memolist); i++ {
                         if (memolist[i] == s_nick) {
@@ -104,7 +108,9 @@ func handleCmd (s_nick string, s_cmd []string, ircobj *irc.Connection) {
                     }
                 }
             }
-        } else { ircobj.Privmsg(target, "available options: list | send | read") }
+        } else {
+            ircobj.Privmsg(target, "available options: list | send | read")
+        }
 
     case "fortune":
 	//	ircobj.Privmsg(channel, shellcom("fortune"))
@@ -127,10 +133,18 @@ func handleCmd (s_nick string, s_cmd []string, ircobj *irc.Connection) {
         switch cmd {
         case "user":
             if (len(cmdArgs) > 0) {
-                if (cmdArgs[0] == "add") { if(!missing.Present(auth_users, string(cmdArgs[1]))) { auth_users = append(auth_users, string(cmdArgs[1]))} }
-                if (cmdArgs[0] == "del") { auth_users = missing.Remove(auth_users, string(cmdArgs[1]))}
-                if (cmdArgs[0] == "list") { ircobj.Privmsgf(target, "admins: %s || users: %s", admins, auth_users) }
-            } else { ircobj.Privmsg(target, "available options: add | del | list") }
+                if (cmdArgs[0] == "add") {
+                    if(!missing.Present(auth_users, string(cmdArgs[1]))) { auth_users = append(auth_users, string(cmdArgs[1]))}
+                }
+                if (cmdArgs[0] == "del") {
+                    auth_users = missing.Remove(auth_users, string(cmdArgs[1]))
+                }
+                if (cmdArgs[0] == "list") {
+                    ircobj.Privmsgf(target, "admins: %s || users: %s", admins, auth_users)
+                }
+            } else {
+                ircobj.Privmsg(target, "available options: add | del | list")
+            }
         }
 }
 
@@ -162,9 +176,9 @@ func main () {
     })
     ircobj.AddCallback("PRIVMSG", func(e *irc.Event) {
 		// insert handlers
-    if (strings.HasPrefix(e.Message, "http://"))	{ handleHttp(e, ircobj) }
-    if (strings.HasPrefix(e.Message, "https://"))	{ handleHttp(e, ircobj) }
-    if (strings.HasPrefix(e.Message, cmdPrefix))	{
+    if (strings.HasPrefix(e.Message, "http://")) { handleHttp(e, ircobj) }
+    if (strings.HasPrefix(e.Message, "https://")) { handleHttp(e, ircobj) }
+    if (strings.HasPrefix(e.Message, cmdPrefix)) {
         s_nick = e.Nick
         s_cmd = e.Message
         check_ident(s_nick, ircobj)
