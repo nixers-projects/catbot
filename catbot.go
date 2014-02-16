@@ -43,24 +43,10 @@ func check_ident (nick string, ircobj *irc.Connection) {
     return
 }
 
-func getTitle (url string) string {
-    r, err := http.Get(url)
-    if err != nil { return "err" }
-    p, err := ioutil.ReadAll(r.Body)
-    if err != nil { return "err" }
-    r.Body.Close()
-    re := regexp.MustCompile("<title>.*?</title>")
-    buf := re.FindString(string(p))
-    fmt.Println(buf)
-    if (len(buf) > 16) {
-        return buf[7:len(buf)-8]
-    }
-    return "err"
-}
-
 func handleHttp (e *irc.Event, ircobj *irc.Connection) {
     t := getTitle(e.Message)
-    if (t != "err") { ircobj.Privmsg(channel, t) }
+    out, err := exec.Command("http.go", t)
+    if (t != "err" && err == nil) { ircobj.Privmsg(channel, t) }
 
 }
 
