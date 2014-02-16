@@ -27,6 +27,7 @@ var (
     cmdPrefix       string  = "."
     s_nick          string  = ""
     s_cmd           string  = ""
+    nickmap                 = make(map[string]string)
 )
 
 func shellcom (cmd string, ircobj *irc.Connection) {
@@ -60,44 +61,18 @@ func handleCmd (s_nick string, s_cmd []string, ircobj *irc.Connection) {
     //strings.Replace(strings.Split(e.Message, " ")[0], cmdPrefix, "", 1)
     cmdArgs := s_cmd[1:] //strings.Split(e.Message, " ")[1:]
 
-    fmt.Printf("%s\n", cmd)
-    if (!missing.Present(admins, s_nick)) {
-        fmt.Println(s_nick + " is not in admins.")
-        if (!missing.Present(auth_users, s_nick)) {
-            fmt.Println(s_nick + " is not in auth_users")
-            return
-        }
-    }
+//    fmt.Printf("%s\n", cmd)
+//    if (!missing.Present(admins, s_nick)) {
+//        fmt.Println(s_nick + " is not in admins.")
+//        if (!missing.Present(auth_users, s_nick)) {
+//            fmt.Println(s_nick + " is not in auth_users")
+//            return
+//        }
+//    }
 
     // auth_users command tree
     switch cmd {
     case "memo":
-        n := len(cmdArgs)
-        if n > 0 {
-            if len(memolist) == len(memomsg) {
-                if cmdArgs[0] == "send" && n > 2 {
-                    memolist = append(memolist, cmdArgs[1])
-                    cmdArgs = append(cmdArgs, "[" + s_nick + "]")
-                    memomsg = append(memomsg, strings.Join(cmdArgs[2:], " "))
-                    fmt.Printf("%s", memomsg)
-                }
-                if cmdArgs[0] == "list" {
-                    ircobj.Privmsgf(target, "memos for: %s", memolist)
-                }
-                if cmdArgs[0] == "read" {
-                    for i := 0; i < len(memolist); i++ {
-                        if (memolist[i] == s_nick) {
-                            ircobj.Privmsgf(s_nick, "%s: %s", memolist[i], memomsg[i])
-                            memolist = missing.Remove(memolist, memolist[i])
-                            memomsg = missing.Remove(memomsg, memomsg[i])
-                        }
-                    }
-                }
-            }
-        } else {
-            ircobj.Privmsg(target, "available options: list | send | read")
-        }
-
     case "fortune":
 	//	ircobj.Privmsg(channel, shellcom("fortune"))
         shellcom("fortune", ircobj)
@@ -107,11 +82,14 @@ func handleCmd (s_nick string, s_cmd []string, ircobj *irc.Connection) {
         break
     case "np":
         if len(cmdArgs) < 1 { break }
+        if val,ok := nickmap[s_nick]; ok { cmdArgs[0] = nickmap[s_nick] }
         r,x := last.Last(cmdArgs[0])
         if x != nil { break }
         ircobj.Privmsg(channel, r)
         break
-
+    case "set":
+        if len(cmdArgs) < 1 { break }
+        nickmap[s_nick] = cmdArgs[1]
     }
 
     if (!missing.Present(admins, s_nick)) { return }
