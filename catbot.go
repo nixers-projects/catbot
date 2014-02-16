@@ -13,21 +13,20 @@ import (
     "github.com/thoj/go-ircevent"
     "last"
 )
-
 var (
-    server          string  = "irc.iotek.org:6667"
-    admins                  = []string {}
-    auth_users              = []string {}
-    memolist                = []string {}
-    memomsg                 = []string {}
-    channel         string  = ""
-    nickname        string  = ""
-    username        string  = ""
-    nickserv_pass   string  = ""
-    cmdPrefix       string  = "."
-    s_nick          string  = ""
-    s_cmd           string  = ""
-    nickmap                 = make(map[string]string)
+	server			string	= ""
+        admins				= []string { "dami0" }
+	auth_users			= []string {}
+	memolist			= []string {}
+	memomsg				= []string {}
+	channel			string	= ""
+	nickname		string	= ""
+	username		string	= ""
+	nickserv_pass		string	= ""
+	cmdPrefix		string	= "."
+	s_nick			string  = ""
+	s_cmd			string  = ""
+	nickmap				= make(map[string]string)
 )
 
 func shellcom (cmd string, ircobj *irc.Connection) {
@@ -54,14 +53,14 @@ func getTitle (url string) string {
     buf := re.FindString(string(p))
     fmt.Println(buf)
     if (len(buf) > 16) {
-            return buf[7:len(buf)-8]
-            }
-            return "err"
+        return buf[7:len(buf)-8]
     }
+    return "err"
+}
 
 func handleHttp (e *irc.Event, ircobj *irc.Connection) {
     t := getTitle(e.Message)
-    if (t != "err" && err == nil) { ircobj.Privmsg(channel, t) }
+    if (t != "err") { ircobj.Privmsg(channel, t) }
 
 }
 
@@ -95,15 +94,15 @@ func handleCmd (s_nick string, s_cmd []string, ircobj *irc.Connection) {
         ircobj.Privmsgf("NICKSERV", "STATUS %s", cmdArgs[0])
         break
     case "np":
+	cmdArgs = append(cmdArgs, nickmap[s_nick])
         if len(cmdArgs) < 1 { break }
-        if val,ok := nickmap[s_nick]; ok { cmdArgs[0] = nickmap[s_nick] }
         r,x := last.Last(cmdArgs[0])
         if x != nil { break }
         ircobj.Privmsg(channel, r)
         break
     case "set":
         if len(cmdArgs) < 1 { break }
-        nickmap[s_nick] = cmdArgs[1]
+        nickmap[s_nick] = cmdArgs[0]
     }
 
     if (!missing.Present(admins, s_nick)) { return }
