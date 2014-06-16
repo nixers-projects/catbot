@@ -4,7 +4,7 @@
 //	authored: dami0 and dcat (at iotek dot org)
 */
 
-package some
+package missing
 
 // check for the presence of string in string array, return -1 or index
 func Present (p string, a []string) int {
